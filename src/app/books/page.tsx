@@ -1,30 +1,21 @@
 import Book from "@/components/Book";
-import Image from "next/image";
+import { getBooks } from "@/services/getData";
+import Link from "next/link";
 
-async function getBooks() {
-
-  try {
-    const res = await fetch('http://localhost:8080/api/books')
-    if (!res.ok) throw new Error(`Error de red: ${res.status}`)
-    return await res.json()
-
-  } catch (error) {
-    console.error('Error al recuperar datos:', error);
-  }
-
-}
-
-export default async function Home() {
+export default async function Books() {
 
   const books = await getBooks()
 
   return (
     <main className="container mx-auto my-10">
-      <h1 className="text-5xl font-bold w-fit">Books</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-5xl font-bold w-fit">Books</h1>
+        <Link className="bg-blue-500 hover:bg-blue-700 p-3 rounded" href="/new">Add Book</Link>
+      </div>
       <section className="">
         {
           books ?
-            <ul className="flex gap-4 my-4">
+            <ul className="flex flex-wrap justify-center items-center gap-4 my-4">
               {
                 books.map((book: Book) => (
                   <li className="w-fit" key={book.id}>

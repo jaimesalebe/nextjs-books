@@ -1,8 +1,10 @@
 'use client'
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import axios from "axios"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
+import { getBookById } from "@/services/crudService"
+import { postBook, putBook } from "@/services/crudService"
 
 export default function BookForm() {
 
@@ -13,6 +15,19 @@ export default function BookForm() {
     const [file, setFile] = useState<File | null>(null)
     const form = useRef<HTMLFormElement | null>(null);
     const router = useRouter()
+    const params = useParams()
+
+    useEffect(() => {
+        if (params.id) {
+            getBookById({ bookId: `${params.id}` })
+                .then((res) => {
+                    setBook({
+                        title: res.title,
+                        author: res.author
+                    })
+                })
+        }
+    }, [])
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
         setBook({
@@ -23,20 +38,21 @@ export default function BookForm() {
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
+
         const formData = new FormData()
         formData.append('title', book.title)
         formData.append('author', book.author)
         file && formData.append('file', file)
 
-        await axios.post(`http://localhost:8080/api/books`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        })
+        if (!params.id) {
+            postBook({ formData })
 
-        await axios.get('api/revalidate?tag=books')
+        } else {
+            putBook({ formData, id: `${params.id}` })
+        }
 
         form.current?.reset()
+        await axios.get('/api/revalidate?tag=books')
         router.push("/books")
         router.refresh()
     }
@@ -52,9 +68,9 @@ export default function BookForm() {
                 onChange={handleChange}
                 id="title"
                 name="title"
+                value={book.title}
                 autoFocus
                 required
-                pattern="^[a-zA-Z0-9\s]*$"
             />
 
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="author">Author</label>
@@ -65,8 +81,9 @@ export default function BookForm() {
                 onChange={handleChange}
                 id="author"
                 name="author"
+                value={book.author}
                 required
-                pattern="^[a-zA-Z0-9\s]*$" />
+            />
 
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="imageBook">Image Book</label>
             <input
@@ -84,7 +101,7 @@ export default function BookForm() {
                 }
             </section>
             <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Save Book
+                {params.id ? "Update Book" : "Save Book"}
             </button>
         </form>
 

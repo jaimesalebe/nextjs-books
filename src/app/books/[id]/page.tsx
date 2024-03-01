@@ -1,5 +1,5 @@
 import Buttons from "@/components/Buttons"
-import { getBookById } from "@/services/getData"
+import { getBookById } from "@/services/crudService"
 import axios from "axios"
 import Image from "next/image"
 import Link from "next/link"
@@ -23,7 +23,7 @@ export default async function BooksById({ params }: { params: { id: string } }) 
                     width={220}
                     height={310}
                     className="aspect-[220/310]" />
-                <Buttons bookId={book.id} />
+                <Buttons bookId={`${book.id}`} />
             </section>
         </main>
     )
